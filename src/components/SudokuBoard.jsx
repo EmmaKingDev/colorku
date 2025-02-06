@@ -4,11 +4,6 @@ import "./SudokuBoard.css";
 import { getRandomTemplate } from "../data/sudokuTemplates";
 import { solutions } from "../data/sudokuSolutions";
 
-const initialBoard = Array(9)
-  .fill()
-  .map(() => Array(9).fill(0));
-
-// Color mapping for numbers 1-9
 const colorMap = {
   1: "#c37de7",
   2: "#8b97ff",
@@ -27,7 +22,6 @@ function SudokuBoard() {
     return savedBoard ? JSON.parse(savedBoard) : getRandomTemplate("easy");
   });
 
-  // Add state to track template cells
   const [templateCells, setTemplateCells] = useState(() => {
     const template = board.map((row) => row.map((cell) => cell !== 0));
     return template;
@@ -37,7 +31,6 @@ function SudokuBoard() {
   const [difficulty, setDifficulty] = useState("easy");
   const [hasWon, setHasWon] = useState(false);
 
-  // Save board state to sessionStorage whenever it changes
   useEffect(() => {
     sessionStorage.setItem("sudokuBoard", JSON.stringify(board));
   }, [board]);
@@ -87,7 +80,6 @@ function SudokuBoard() {
     e.preventDefault();
   };
 
-  // Update difficulty change handler
   const handleDifficultyChange = (newDifficulty) => {
     setDifficulty(newDifficulty);
     setHasWon(false);
@@ -97,7 +89,6 @@ function SudokuBoard() {
     sessionStorage.setItem("sudokuBoard", JSON.stringify(newTemplate));
   };
 
-  // Update handleResetGame to reset templateCells
   const handleResetGame = () => {
     const currentTemplate = getRandomTemplate(difficulty);
     setBoard(currentTemplate);

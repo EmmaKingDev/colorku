@@ -1,6 +1,6 @@
 # Colorku
 
-A colorful take on Sudoku where each number has its own unique color. Drag and drop numbers to solve the puzzle.
+Sudoku with colos. Drag and drop numbers to solve the puzzle.
 
 ## Tech Stack
 
