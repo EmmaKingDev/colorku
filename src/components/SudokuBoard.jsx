@@ -132,10 +132,18 @@ function SudokuBoard() {
         >
           <RiDeleteBin6Fill size={28} />
         </div>
-        <button onClick={handleResetGame} className="reset-button">
-          Reset
-        </button>
       </div>
+      <button onClick={handleResetGame} className="reset-button">
+        RESET
+      </button>
+      <a
+        href="https://github.com/EmmaKingDev"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="creator-link"
+      >
+        made by emmakingdev
+      </a>
     </div>
   );
 }
