@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { RiDeleteBin6Fill } from "react-icons/ri";
 import "./SudokuBoard.css";
+import { getRandomTemplate } from "../data/sudokuTemplates";
+import { solutions } from "../data/sudokuSolutions";
 
 const initialBoard = Array(9)
   .fill()
@@ -10,23 +12,30 @@ const initialBoard = Array(9)
 const colorMap = {
   1: "#c37de7",
   2: "#8b97ff",
-  3: "#a5f07d",
-  4: "#FFAF71",
+  3: "#96e86a",
+  4: "#ffb05d",
   5: "#FFF082",
   6: "#FF9ECE",
   7: "#87d1e8",
-  8: "#aaf4cd",
-  9: "#F2B694",
+  8: "#b3fdd6",
+  9: "#f7c1a1",
 };
 
 function SudokuBoard() {
-  // Load initial state from sessionStorage or use default
   const [board, setBoard] = useState(() => {
     const savedBoard = sessionStorage.getItem("sudokuBoard");
-    return savedBoard ? JSON.parse(savedBoard) : initialBoard;
+    return savedBoard ? JSON.parse(savedBoard) : getRandomTemplate("easy");
+  });
+
+  // Add state to track template cells
+  const [templateCells, setTemplateCells] = useState(() => {
+    const template = board.map((row) => row.map((cell) => cell !== 0));
+    return template;
   });
 
   const [selectedNumber, setSelectedNumber] = useState(null);
+  const [difficulty, setDifficulty] = useState("easy");
+  const [hasWon, setHasWon] = useState(false);
 
   // Save board state to sessionStorage whenever it changes
   useEffect(() => {
@@ -47,6 +56,10 @@ function SudokuBoard() {
       const newBoard = board.map((row) => [...row]);
       newBoard[row][col] = number;
       setBoard(newBoard);
+
+      if (checkWin(newBoard)) {
+        setHasWon(true);
+      }
     }
   };
 
@@ -74,13 +87,37 @@ function SudokuBoard() {
     e.preventDefault();
   };
 
+  // Update difficulty change handler
+  const handleDifficultyChange = (newDifficulty) => {
+    setDifficulty(newDifficulty);
+    setHasWon(false);
+    const newTemplate = getRandomTemplate(newDifficulty);
+    setBoard(newTemplate);
+    setTemplateCells(newTemplate.map((row) => row.map((cell) => cell !== 0)));
+    sessionStorage.setItem("sudokuBoard", JSON.stringify(newTemplate));
+  };
+
+  // Update handleResetGame to reset templateCells
   const handleResetGame = () => {
-    setBoard(initialBoard);
-    sessionStorage.removeItem("sudokuBoard");
+    const currentTemplate = getRandomTemplate(difficulty);
+    setBoard(currentTemplate);
+    setTemplateCells(
+      currentTemplate.map((row) => row.map((cell) => cell !== 0))
+    );
+    sessionStorage.setItem("sudokuBoard", JSON.stringify(currentTemplate));
+    setHasWon(false);
+  };
+
+  const checkWin = (currentBoard) => {
+    const currentSolution = solutions[difficulty][0];
+    return currentBoard.every((row, i) =>
+      row.every((cell, j) => cell === currentSolution[i][j])
+    );
   };
 
   return (
     <div className="game-container">
+      <div className={`win-message ${hasWon ? "visible" : ""}`}>You won!</div>
       <div className="sudoku-board">
         {board.map((row, rowIndex) => (
           <div key={rowIndex} className="row">
@@ -91,10 +128,11 @@ function SudokuBoard() {
                 style={{
                   backgroundColor: cell ? colorMap[cell] : "white",
                   color: cell ? colorMap[cell] : "transparent",
+                  border: cell ? "1px solid #ffffff" : "1px solid #ccc",
                 }}
                 onDragOver={handleDragOver}
                 onDrop={(e) => handleDrop(e, rowIndex, colIndex)}
-                draggable={cell !== 0}
+                draggable={cell !== 0 && !templateCells[rowIndex][colIndex]}
                 onDragStart={(e) =>
                   handleCellDragStart(e, rowIndex, colIndex, cell)
                 }
@@ -133,6 +171,19 @@ function SudokuBoard() {
           <RiDeleteBin6Fill size={28} />
         </div>
       </div>
+      <div className="difficulty-selector">
+        {["easy", "medium", "hard"].map((level) => (
+          <button
+            key={level}
+            className={`difficulty-button ${
+              difficulty === level ? "selected" : ""
+            }`}
+            onClick={() => handleDifficultyChange(level)}
+          >
+            {level.toUpperCase()}
+          </button>
+        ))}
+      </div>
       <button onClick={handleResetGame} className="reset-button">
         RESET
       </button>
@@ -142,7 +193,7 @@ function SudokuBoard() {
         rel="noopener noreferrer"
         className="creator-link"
       >
-        made by emmakingdev
+        made by emma
       </a>
     </div>
   );
