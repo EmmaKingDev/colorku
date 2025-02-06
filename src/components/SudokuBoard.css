@@ -1,0 +1,117 @@
+.sudoku-board {
+  display: inline-block;
+  padding: 20px;
+  background-color: #f0f0f0;
+  border-radius: 8px;
+  width: fit-content;
+  margin-bottom: 10px;
+}
+
+.row {
+  display: flex;
+}
+
+.cell {
+  width: 45px;
+  height: 45px;
+  border: 1px solid #ccc;
+  text-align: center;
+  font-size: 22px;
+  margin: 2px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  cursor: default;
+}
+
+.cell:empty {
+  cursor: default;
+}
+
+.cell[draggable="true"] {
+  cursor: grab;
+}
+
+.cell[draggable="true"]:active {
+  cursor: grabbing;
+}
+
+.cell:focus {
+  outline: 2px solid #666;
+}
+
+/* Add borders to separate 3x3 boxes */
+.row:nth-child(3n) .cell {
+  margin-bottom: 10px;
+}
+
+.row .cell:nth-child(3n) {
+  margin-right: 10px;
+}
+
+.game-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+  max-width: 500px;
+}
+
+.number-selector {
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+  padding: 10px;
+  background-color: #f0f0f0;
+  border-radius: 8px;
+}
+
+.number-cell {
+  width: 45px;
+  height: 45px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #ffffff;
+  border-radius: 4px;
+  font-size: 22px;
+  cursor: grab;
+  font-family: inherit;
+}
+
+.number-cell.selected {
+  border: 2px solid #fff;
+}
+
+.number-cell:hover {
+  opacity: 0.8;
+}
+
+.controls-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.delete-bin {
+  width: 45px;
+  height: 45px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 10px;
+  cursor: pointer;
+  background-color: #f0f0f0;
+  transition: all 0.2s ease;
+  color: #c37de7;
+}
+
+.delete-bin:hover {
+  color: #000dff;
+}
