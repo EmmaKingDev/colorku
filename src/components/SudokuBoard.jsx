@@ -30,28 +30,64 @@ function SudokuBoard() {
   const [selectedNumber, setSelectedNumber] = useState(null);
   const [difficulty, setDifficulty] = useState("easy");
   const [hasWon, setHasWon] = useState(false);
+  const [colorCounts, setColorCounts] = useState(() => {
+    const counts = {};
+    board.forEach((row) => {
+      row.forEach((cell) => {
+        if (cell !== 0) {
+          counts[cell] = (counts[cell] || 0) + 1;
+        }
+      });
+    });
+    return counts;
+  });
 
   useEffect(() => {
     sessionStorage.setItem("sudokuBoard", JSON.stringify(board));
   }, [board]);
 
   const handleDragStart = (e, number) => {
+    if (colorCounts[number] >= 9) {
+      e.preventDefault();
+      return;
+    }
     e.dataTransfer.setData("number", number);
     e.dataTransfer.setData("type", "number");
   };
 
   const handleDrop = (e, row, col) => {
     e.preventDefault();
+    if (templateCells[row][col]) return;
+
     const number = parseInt(e.dataTransfer.getData("number"));
     const type = e.dataTransfer.getData("type");
 
-    if (type === "number") {
+    if (
+      type === "number" &&
+      (!colorCounts[number] || colorCounts[number] < 9)
+    ) {
       const newBoard = board.map((row) => [...row]);
       newBoard[row][col] = number;
       setBoard(newBoard);
 
+      setColorCounts((prev) => ({
+        ...prev,
+        [number]: (prev[number] || 0) + 1,
+      }));
+
       if (checkWin(newBoard)) {
         setHasWon(true);
+      }
+    } else if (type === "cell") {
+      const sourceRow = parseInt(e.dataTransfer.getData("row"));
+      const sourceCol = parseInt(e.dataTransfer.getData("col"));
+      const draggedNumber = board[sourceRow][sourceCol];
+
+      if (!templateCells[sourceRow][sourceCol]) {
+        const newBoard = board.map((row) => [...row]);
+        newBoard[sourceRow][sourceCol] = 0;
+        newBoard[row][col] = draggedNumber;
+        setBoard(newBoard);
       }
     }
   };
@@ -62,14 +98,26 @@ function SudokuBoard() {
     if (type === "cell") {
       const row = parseInt(e.dataTransfer.getData("row"));
       const col = parseInt(e.dataTransfer.getData("col"));
+      const number = board[row][col];
 
-      const newBoard = board.map((r) => [...r]);
-      newBoard[row][col] = 0;
-      setBoard(newBoard);
+      if (!templateCells[row][col]) {
+        const newBoard = board.map((r) => [...r]);
+        newBoard[row][col] = 0;
+        setBoard(newBoard);
+
+        setColorCounts((prev) => ({
+          ...prev,
+          [number]: prev[number] - 1,
+        }));
+      }
     }
   };
 
   const handleCellDragStart = (e, row, col, number) => {
+    if (templateCells[row][col]) {
+      e.preventDefault();
+      return;
+    }
     e.dataTransfer.setData("number", number);
     e.dataTransfer.setData("row", row);
     e.dataTransfer.setData("col", col);
@@ -87,6 +135,16 @@ function SudokuBoard() {
     setBoard(newTemplate);
     setTemplateCells(newTemplate.map((row) => row.map((cell) => cell !== 0)));
     sessionStorage.setItem("sudokuBoard", JSON.stringify(newTemplate));
+
+    const counts = {};
+    newTemplate.forEach((row) => {
+      row.forEach((cell) => {
+        if (cell !== 0) {
+          counts[cell] = (counts[cell] || 0) + 1;
+        }
+      });
+    });
+    setColorCounts(counts);
   };
 
   const handleResetGame = () => {
@@ -97,6 +155,16 @@ function SudokuBoard() {
     );
     sessionStorage.setItem("sudokuBoard", JSON.stringify(currentTemplate));
     setHasWon(false);
+
+    const counts = {};
+    currentTemplate.forEach((row) => {
+      row.forEach((cell) => {
+        if (cell !== 0) {
+          counts[cell] = (counts[cell] || 0) + 1;
+        }
+      });
+    });
+    setColorCounts(counts);
   };
 
   const checkWin = (currentBoard) => {
@@ -115,7 +183,9 @@ function SudokuBoard() {
             {row.map((cell, colIndex) => (
               <div
                 key={`${rowIndex}-${colIndex}`}
-                className="cell"
+                className={`cell ${
+                  !templateCells[rowIndex][colIndex] ? "movable" : ""
+                }`}
                 style={{
                   backgroundColor: cell ? colorMap[cell] : "white",
                   color: cell ? colorMap[cell] : "transparent",
@@ -141,13 +211,17 @@ function SudokuBoard() {
               key={number}
               className={`number-cell ${
                 selectedNumber === number ? "selected" : ""
-              }`}
+              } ${colorCounts[number] >= 9 ? "disabled" : ""}`}
               style={{
                 backgroundColor: colorMap[number],
                 color: colorMap[number],
+                opacity: colorCounts[number] >= 9 ? 0.5 : 1,
+                cursor: colorCounts[number] >= 9 ? "not-allowed" : "grab",
               }}
-              onClick={() => setSelectedNumber(number)}
-              draggable={true}
+              onClick={() =>
+                colorCounts[number] < 9 && setSelectedNumber(number)
+              }
+              draggable={colorCounts[number] < 9}
               onDragStart={(e) => handleDragStart(e, number)}
             >
               {number}
